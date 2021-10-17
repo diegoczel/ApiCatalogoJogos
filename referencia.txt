@@ -1,0 +1,120 @@
+Versionamento de controller
+	* na pasta Controllers
+		separar em pastas V1, V2.
+		para facilitar o uso de clientes, pois imagine que tem clientes que usam tais rotas
+		e fazemos uma mudança que quebre o uso dos clientes.
+		para contornar deixa V1 com as rotas antigas, e cria em V2 as mudanças.
+		
+		colocando na route da controller
+		[Route("api/V1/[controller]")]
+		
+DTO Data Transfer Object
+	criar pasta
+		InputModel
+			dados vindo do usuario
+			o que recebemos
+		ViewModel
+			dto
+			o que retornamos
+	[DataAnnotation]
+		forma de validar o method ou atrbuto
+		
+injeção de dependencia
+	* devemos depender de contrato e NÃO de implementação
+	
+	criar pasta Services
+	
+	
+Repositories
+	lida com entidades
+	
+Entities
+	
+IDisposable
+	que será gerenciado pelo gc
+	então quando não estiver executando será fechado conexoes com repository digamos
+	
+auto map
+	converter de viemmodel
+	
+aspnet
+	container
+		guarda os registros digamos de qual interface vai ser atribuido a qual instancia
+		a tal injecao de dependencia
+		
+		tipos injeção
+			singleton
+				quando inicia, somente tem UMA copia até o fim da execução
+				como se fosse uma classe static
+				o mesmo para qualquer requisição
+			scoped
+				uma instancia que fica viva durante a requisição
+				se for injetado em varias classes na mesma requisição VAI ser o mesmo
+			transient
+				cada vez que injeta irá retornar uma instancia nova
+				
+		
+		conf no Startup.cs
+			ConfigureServices
+				services.AddScoped<IJogoService, JogoService>();
+				services.AddScoped<IJogoRepository, JogoRepository>();
+				
+				Toda vez que aspnet encontrar IJogoService em um contrutor
+				ele tem que transformar em JogoService, dar uma instancia pra ele.
+
+
+IConfiguration configuration
+	serve para pegar configurações do arquivo appsettings.json
+	
+	configurar o banco
+	
+	em appsettings.json
+		"ConnectionStrings": {
+		  "Default": "Server=localhost\\SQLEXPRESS;Database=CatalogoJogos;Trusted_Connection=True;Connect Timeout=30"
+		}
+	
+	em JogoSqlServerRepository
+		public JogoSqlServerRepository(IConfiguration configuration)
+        {
+            sqlConnection = new SqlConnection(configuration.GetConnectionString("Default"));
+        }
+		
+add comment no swagger
+	1- habilitar conf 
+		botao direito em cima projeto e em compilar/build
+		marcar habilitar xml comment
+	2- suprimir msg erro 1591
+		botao direito em cima projeto e em compilar/build
+		inserir em suppress warnings ou supremir avisos
+		;1591
+	2- em ConfigureServices no Startup.cs
+		add dentro da conf do swagger
+		var basePath = AppDomain.CurrentDomain.BaseDirectory;
+		var fileName = typeof(Startup).GetTypeInfo().Assembly.GetName().Name + ".xml";
+		c.IncludeXmlComments(Path.Combine(basePath, fileName));
+	3- dai so add xml doc em cima method http da controller
+		/// <summary>
+        /// Excluir um jogo
+        /// </summary>
+        /// /// <param name="idJogo">Id do jogo a ser excluído</param>
+        /// <response code="200">Cao o preço seja atualizado com sucesso</response>
+        /// <response code="404">Caso não exista um jogo com este Id</response>   
+
+middleware
+	pode-se criar proprio middleware
+	
+	nesse exemplo criar um para interceptar exceptions
+	
+	1- criar pasta Middleware
+	2- criar arquivo ExceptionMiddleware.cs
+		//seguir padrao microsoft de middleware
+		
+		
+		//middleware sempre tenta chamar propriedade next
+		private readonly RequestDelegate next;
+		
+	x- vincular middlare em Configure de Startup.cs
+		app.UseMiddleware<ExceptionMiddleware>();
+
+erros
+	patch preço salva zerado
